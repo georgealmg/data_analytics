@@ -1,7 +1,5 @@
 # !/usr/bin/env python3
 
-# DROP network modules data
-
 import pandas as pd, os, sqlalchemy as db
 from acidevices import acidata, apics, ACIdata
 from bugapi import bugdata, Bdata, products
@@ -10,7 +8,6 @@ from dnacdevices import dnacdata, DNACdata
 from dotenv import load_dotenv
 from devicedata import device_data, Ddata, offline, offline_file
 from getpass import getuser
-from genie.testbed import load
 from sqlalchemy.exc import ProgrammingError as alchemyerror
 from pymysql.err import ProgrammingError as mysqlerror
 from netifaces import gateways
@@ -19,7 +16,7 @@ from supportapi import supportdata, supportdict
 from psirtapi import psirtdata, osdict, OSdata
 
 try:
-    os.chdir(f"/mnt/c/Users/{getuser()}/Documents/networking/cisco_support_api")
+    os.chdir(f"/mnt/c/Users/{getuser()}/Documents/data_analytics/cisco_support_api")
 except(FileNotFoundError):
     os.chdir(os.getcwd())
 
@@ -40,9 +37,13 @@ tiempo1 = datetime.now()
 tiempo_inicial = tiempo1.strftime("%H:%M:%S")
 print(f"Hora de inicio: {tiempo_inicial}")
 
-tb = load('devices.yml')
-devices = [""]
-device_data(devices,offline,offline_file,tb)
+with open("ios.txt","r") as file:
+    ios = [l.strip("\n") for l in file.readlines()]
+with open("nxos.txt","r") as file:
+    nxos = [l.strip("\n") for l in file.readlines()]
+devices = ios+nxos
+
+device_data(devices,offline,offline_file,env_vars,ios,nxos)
 standalonedf = pd.DataFrame(Ddata)
 standalonedf["OS"] = standalonedf["OS"].replace(to_replace={"IOS":"ios","IOS-XE":"iosxe","NX-OS":"nxos"})
 standalonedf["ProductID"] = standalonedf["ProductID"].replace(regex={r"Nexus9\d+\s":"N9K-",r"Nexus7\d+\s":"N7K-",r"Nexus5\d+\s":"N5K-",
